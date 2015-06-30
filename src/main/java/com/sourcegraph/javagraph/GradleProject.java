@@ -22,7 +22,7 @@ public class GradleProject implements Project {
         return BuildAnalysis.Gradle.collectMetaInformation(getWrapper(), build).classPath;
     }
 
-    // TODO Merge this function with ‘getGradleDependencies’.
+    // TODO Merge this function with 'getGradleDependencies'.
     public static BuildAnalysis.POMAttrs getGradleAttrs(String repoURI, Path build) throws IOException {
         BuildAnalysis.POMAttrs attrs = BuildAnalysis.Gradle.collectMetaInformation(getWrapper(), build).attrs;
 
@@ -77,7 +77,7 @@ public class GradleProject implements Project {
         unit.Data.put("GradleFile", gradleFile.toString());
         unit.Data.put("Description", attrs.description);
 
-        // TODO: Java source files can be other places besides ‘./src’
+        // TODO: Java source files can be other places besides './src'
         unit.Files = ScanUtil.findAllJavaFiles(gradleFile.getParent().resolve("src"));
         unit.sortFiles();
 

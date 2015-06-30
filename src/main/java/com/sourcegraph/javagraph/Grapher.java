@@ -27,11 +27,14 @@ public class Grapher {
     private final GraphWriter emit;
     private final List<String> javacOpts;
 
-    public Grapher(String classpath, String sourcepath, GraphWriter emit) {
+    public Grapher(String classpath, String sourcepath, GraphWriter emit) throws Exception {
         this.emit = emit;
 
         compiler = ToolProvider.getSystemJavaCompiler();
         diags = new DiagnosticCollector<JavaFileObject>();
+		if (compiler == null) {
+			throw new Exception("no system Java compiler (is javac running from the right $JAVA_HOME with tools.jar?)");
+		}
         fileManager = compiler.getStandardFileManager(diags, null, null);
 
         javacOpts = new ArrayList<>();
@@ -46,7 +49,7 @@ public class Grapher {
         javacOpts.add("-XDshouldStopPolicyIfNoError=ATTR");
 
         javacOpts.add("-source");
-        javacOpts.add("1.8");
+        javacOpts.add(Runtime.class.getPackage().getSpecificationVersion());
 
         // This is necessary to produce Elements (and therefore defs and refs) when compilation errors occur. It will still probably fail on syntax errors, but typechecking errors are survivable.
         javacOpts.add("-proc:none");

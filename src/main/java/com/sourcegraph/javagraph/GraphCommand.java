@@ -7,6 +7,7 @@ import org.apache.commons.lang.StringUtils;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.util.LinkedList;
@@ -30,7 +31,7 @@ public class GraphCommand {
             Reader r;
             if (debugUnitFile != null && !debugUnitFile.isEmpty()) {
                 System.err.println("Reading source unit JSON from --debug-unit-file " + debugUnitFile);
-                r = Files.newBufferedReader(FileSystems.getDefault().getPath(debugUnitFile));
+                r = Files.newBufferedReader(FileSystems.getDefault().getPath(debugUnitFile), StandardCharsets.UTF_8);
             } else {
                 r = new InputStreamReader(System.in);
             }

@@ -51,6 +51,6 @@ public class SourceUnit {
     }
 
     public void sortFiles() {
-        Files.sort(String::compareTo);
+        java.util.Collections.sort(Files);
     }
 }

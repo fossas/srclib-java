@@ -7,7 +7,7 @@ import com.sun.source.util.Trees;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.lang.model.element.*;
-import javax.lang.model.util.ElementKindVisitor8;
+import javax.lang.model.util.ElementKindVisitor7;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,7 +33,7 @@ public class ElementPath {
     private static Map<Element, Integer> anonClasses = new HashMap<>();
 
     private static class Visitor extends
-            ElementKindVisitor8<ElementPath, ElementPath> {
+            ElementKindVisitor7<ElementPath, ElementPath> {
         private final Trees trees;
         private final CompilationUnitTree compilationUnit;
 

@@ -14,8 +14,8 @@ import java.util.List;
 public class ScanUtil {
     public static HashSet<Path> findMatchingFiles(String fileName) throws IOException {
         String pat = "glob:**/" + fileName;
-        PathMatcher matcher = FileSystems.getDefault().getPathMatcher(pat);
-        HashSet<Path> result = new HashSet<>();
+        final PathMatcher matcher = FileSystems.getDefault().getPathMatcher(pat);
+        final HashSet<Path> result = new HashSet<>();
 
         Files.walkFileTree(Paths.get("."), new SimpleFileVisitor<Path>() {
             @Override
