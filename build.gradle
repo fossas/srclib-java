@@ -1,3 +1,7 @@
+plugins {
+  id "edu.sc.seis.macAppBundle" version "2.1.1"
+}
+
 apply plugin: 'eclipse'
 apply plugin: 'application'
 
@@ -54,4 +58,10 @@ jar {
 		exclude "META-INF/*.DSA"
 		exclude "META-INF/*.RSA"
 	}
+}
+
+
+macAppBundle {
+    mainClassName = "com.sourcegraph.javagraph.Main"
+    bundleJRE = true
 }

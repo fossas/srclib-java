@@ -2,11 +2,16 @@ package com.sourcegraph.javagraph;
 
 import com.beust.jcommander.JCommander;
 import com.jcabi.manifests.Manifests;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException {
+		if (args.length == 0) {
+			args = StringUtils.split(System.getenv("ARGS"));
+		}
+
         String version = Manifests.read("Javagraph-Version");
         System.err.println("Using srclib-java version '" + version + "'");
 
@@ -27,7 +32,7 @@ public class Main {
             System.out.println(e.getMessage());
             System.exit(1);
         }
-
+		System.err.println("jc=" + jc + " -- args=" + StringUtils.join(args, " "));
         switch (jc.getParsedCommand()) {
             case "scan":
                 scan.Execute();
