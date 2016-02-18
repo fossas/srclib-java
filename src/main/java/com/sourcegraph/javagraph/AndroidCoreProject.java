@@ -79,14 +79,15 @@ public class AndroidCoreProject implements Project {
 
     /**
      * Creates source unit from a given directory
+     * @param subdir sub-directory inside current working dir to search for sources in
      * @return source unit
      * @throws Exception
      */
-    public static SourceUnit createSourceUnit() throws Exception {
+    public static SourceUnit createSourceUnit(String subdir) throws Exception {
         final SourceUnit unit = new SourceUnit();
         unit.Type = SourceUnit.DEFAULT_TYPE;
         unit.Name = MARKER;
-        unit.Dir = ".";
+        unit.Dir = subdir;
 
         List<String> files = new LinkedList<>();
         List<String> directories = new LinkedList<>();
@@ -95,6 +96,7 @@ public class AndroidCoreProject implements Project {
         unit.Files = files;
 
         unit.Data.put(SourceUnit.TYPE, MARKER);
+        unit.Data.put("AndroidCoreSubdir", subdir);
         return unit;
     }
 

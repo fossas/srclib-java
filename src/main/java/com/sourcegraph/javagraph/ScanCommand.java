@@ -17,12 +17,30 @@ public class ScanCommand {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ScanCommand.class);
 
+    @Parameter(names = {"--repo"}, description = "The URI of the repository that contains the directory tree being scanned")
+    String repoURI;
+
+    @Parameter(names = {"--subdir"}, description = "The path of the current directory (in which the scanner is run), relative to the root directory of the repository being scanned (this is typically the root, \".\", as it is most useful to scan the entire repository)")
+    String subdir;
+
+    public static final String JDK_TEST_REPO = "github.com/sgtest/java-jdk-sample";
+    public static final String ANDROID_SDK_REPO = "android.googlesource.com/platform/frameworks/base";
+    public static final String ANDROID_CORE_REPO = "android.googlesource.com/platform/libcore";
+    public static final String ANDROID_SUPPORT_FRAMEWORK_REPO = "android.googlesource.com/platform/frameworks/support";
+
     /**
      * Main method
      */
     public void Execute() {
 
         try {
+            if (repoURI == null) {
+                repoURI = StringUtils.EMPTY;
+            }
+            if (subdir == null) {
+                subdir = ".";
+            }
+
             // Scan for source units.
             List<SourceUnit> units = new ArrayList<>();
             // Recursively find all Maven and Gradle projects.

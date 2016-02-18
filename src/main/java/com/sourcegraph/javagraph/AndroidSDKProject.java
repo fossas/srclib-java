@@ -99,18 +99,20 @@ public class AndroidSDKProject implements Project {
 
     /**
      * Creates source unit from a given directory
+     * @param subdir sub-directory inside current working dir to search for sources in
      * @return source unit
      * @throws Exception
      */
-    public static SourceUnit createSourceUnit() throws Exception {
+    public static SourceUnit createSourceUnit(String subdir) throws Exception {
 
 
         final SourceUnit unit = new SourceUnit();
         unit.Type = SourceUnit.DEFAULT_TYPE;
         unit.Name = MARKER;
-        unit.Dir = ".";
+        unit.Dir = subdir;
         unit.Files = getSourceFiles(PathUtil.CWD.resolve("."));
         unit.Data.put(SourceUnit.TYPE, MARKER);
+        unit.Data.put("AndroidSDKSubdir", subdir);
         return unit;
     }
 
