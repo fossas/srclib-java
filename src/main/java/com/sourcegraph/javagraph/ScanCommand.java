@@ -94,6 +94,7 @@ public class ScanCommand {
                         }
                         return dependency;
                     })
+                    .filter(dependency -> !dependency.scope.toLowerCase().equals("test"))
                     .sorted(dependencyComparator)
                     .collect(Collectors.toList());
             List<String> internalFiles = new ArrayList<>();
