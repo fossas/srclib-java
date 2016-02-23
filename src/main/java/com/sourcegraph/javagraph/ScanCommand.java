@@ -2,6 +2,8 @@ package com.sourcegraph.javagraph;
 
 import com.beust.jcommander.Parameter;
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,7 +13,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class ScanCommand {
 
@@ -106,6 +111,36 @@ public class ScanCommand {
             }
             if (unit.Data.containsKey("POMFile")) {
                 unit.Data.put("POMFile", PathUtil.relativizeCwd((String) unit.Data.get("POMFile")));
+            }
+
+            // Filter out optional dependencies
+            //     "POM": {
+            // "project": {
+            //     "artifactId": "spring-webmvc",
+            //     "dependencies": {
+            //         "dependency": [
+            if (unit.Data.containsKey("POM")) {
+              JSONObject pomData = (JSONObject) unit.Data.get("POM");
+              TreeSet<String> optionalDependenciesSet = new TreeSet<String>();
+
+              try {
+                JSONArray dependencies = pomData.getJSONObject("project").getJSONObject("dependencies").getJSONArray("dependency");
+
+                for (int i = 0; i < dependencies.length(); i++) {
+                  JSONObject dependency = dependencies.getJSONObject(i);
+                  if (dependency.has("optional") && dependency.getBoolean("optional")) {
+                    optionalDependenciesSet.add(dependency.getString("groupId") + ":" + dependency.getString("artifactId"));
+                  }
+                }
+              } catch(Exception e) {
+                // TODO: Dont skip
+              }
+
+              unit.Dependencies = unit.Dependencies.stream()
+              .filter(dependency -> {
+                return !optionalDependenciesSet.contains(dependency.groupID + ":" + dependency.artifactID);
+              })
+              .collect(Collectors.toList());
             }
 
             if (unit.Data.containsKey(AntProject.BUILD_XML_PROPERTY)) {
