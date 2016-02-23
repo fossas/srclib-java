@@ -4,6 +4,7 @@ import com.beust.jcommander.Parameter;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,15 +133,17 @@ public class ScanCommand {
                     optionalDependenciesSet.add(dependency.getString("groupId") + ":" + dependency.getString("artifactId"));
                   }
                 }
-              } catch(Exception e) {
-                // TODO: Dont skip
-              }
 
-              unit.Dependencies = unit.Dependencies.stream()
-              .filter(dependency -> {
-                return !optionalDependenciesSet.contains(dependency.groupID + ":" + dependency.artifactID);
-              })
-              .collect(Collectors.toList());
+                unit.Dependencies = unit.Dependencies.stream()
+                .filter(dependency -> {
+                  return !optionalDependenciesSet.contains(dependency.groupID + ":" + dependency.artifactID);
+                })
+                .collect(Collectors.toList());
+              } catch(JSONException e) {
+                LOGGER.error("There was a formatting issue with the POM data received. Could not filter optional dependencies.", e);
+              } catch(Exception e) {
+                LOGGER.error("Unknown exception happened when parsing POM data and filtering optional dependencies", e);
+              }
             }
 
             if (unit.Data.containsKey(AntProject.BUILD_XML_PROPERTY)) {
