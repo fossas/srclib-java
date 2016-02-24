@@ -105,6 +105,7 @@ public class MavenProject implements Project {
             ModelBuildingRequest request = new DefaultModelBuildingRequest();
             request.setSystemProperties(System.getProperties());
             request.setPomFile(pomFile.toFile());
+            request.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL);
             // alexsaveliev: adding a resolver used by model builder to fetch POM files
             request.setModelResolver(new MavenModelResolver(new DefaultRemoteRepositoryManager(),
                     repositorySystem,
