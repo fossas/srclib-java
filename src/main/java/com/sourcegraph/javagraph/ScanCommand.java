@@ -114,34 +114,57 @@ public class ScanCommand {
                 unit.Data.put("POMFile", PathUtil.relativizeCwd((String) unit.Data.get("POMFile")));
             }
 
-            // Filter out optional dependencies
-            //     "POM": {
-            // "project": {
-            //     "artifactId": "spring-webmvc",
-            //     "dependencies": {
-            //         "dependency": [
+            // Filter out optional dependencies:
+            // POM -> project -> dependencies -> dependency -> Array or Object
             if (unit.Data.containsKey("POM")) {
-              JSONObject pomData = (JSONObject) unit.Data.get("POM");
-              TreeSet<String> optionalDependenciesSet = new TreeSet<String>();
-
               try {
-                JSONArray dependencies = pomData.getJSONObject("project").getJSONObject("dependencies").getJSONArray("dependency");
+                JSONObject pomData = (JSONObject) unit.Data.get("POM");
+                JSONObject project = pomData.optJSONObject("project");
+                TreeSet<String> optionalDependenciesSet = new TreeSet<String>();
+                boolean canProceed = true;
 
-                for (int i = 0; i < dependencies.length(); i++) {
-                  JSONObject dependency = dependencies.getJSONObject(i);
-                  if (dependency.has("optional") && dependency.getBoolean("optional")) {
-                    optionalDependenciesSet.add(dependency.getString("groupId") + ":" + dependency.getString("artifactId"));
-                  }
+                if (project == null) {
+                  canProceed = false;
+                  LOGGER.warn("There was a formatting issue with the POM data received. No project data could be found. Could not filter optional dependencies.");
                 }
 
-                unit.Dependencies = unit.Dependencies.stream()
-                .filter(dependency -> {
-                  return !optionalDependenciesSet.contains(dependency.groupID + ":" + dependency.artifactID);
-                })
-                .collect(Collectors.toList());
-              } catch(JSONException e) {
-                LOGGER.error("There was a formatting issue with the POM data received. Could not filter optional dependencies.", e);
-              } catch(Exception e) {
+                if (canProceed && !project.has("dependencies")) {
+                  canProceed = false;
+                  LOGGER.debug("No dependencies in POM. Will not filter optional dependencies.");
+                }
+
+                if (canProceed && !project.getJSONObject("dependencies").has("dependencies")) {
+                  canProceed = false;
+                  LOGGER.debug("No dependencies in POM. Will not filter optional dependencies.");
+                }
+
+                if (canProceed) {
+                  Object dependencies = project.getJSONObject("dependencies").get("dependency");
+                  JSONArray dependenciesArray;
+
+                  if (dependencies instanceof JSONArray) {
+                    dependenciesArray = (JSONArray)dependencies;
+                  } else if (dependencies instanceof JSONObject) {
+                    dependenciesArray = new JSONArray();
+                    dependenciesArray.put((JSONObject)dependencies);
+                  } else {
+                    dependenciesArray = new JSONArray();
+                  }
+
+                  for (int i = 0; i < dependenciesArray.length(); i++) {
+                    JSONObject dependency = dependenciesArray.getJSONObject(i);
+                    if (dependency.has("optional") && dependency.getBoolean("optional")) {
+                      optionalDependenciesSet.add(dependency.getString("groupId") + ":" + dependency.getString("artifactId"));
+                    }
+                  }
+
+                  unit.Dependencies = unit.Dependencies.stream()
+                  .filter(dep -> {
+                    return !optionalDependenciesSet.contains(dep.groupID + ":" + dep.artifactID);
+                  })
+                  .collect(Collectors.toList());
+                }
+              } catch (Exception e) {
                 LOGGER.error("Unknown exception happened when parsing POM data and filtering optional dependencies", e);
               }
             }
