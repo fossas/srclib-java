@@ -2,6 +2,8 @@ package com.sourcegraph.javagraph;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
+
 /**
  * A Raw, unresolved source unit dependency.
  */
@@ -39,6 +41,14 @@ public class RawDependency {
      * SCM URI
      */
     String repoURI;
+    /**
+     * Optional dependency
+     */
+    boolean optional;
+    /**
+     * Exclusions
+     */
+    List<RawExclusion> exclusions;
 
     public RawDependency(String groupID, String artifactID, String version, String scope, String file) {
         this.groupID = groupID;
@@ -84,6 +94,7 @@ public class RawDependency {
         result = 31 * result + (scope != null ? scope.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (classifier != null ? classifier.hashCode() : 0);
+        result = 31 * result + (exclusions != null ? exclusions.hashCode() : 0);
         return result;
     }
 
@@ -96,6 +107,8 @@ public class RawDependency {
                 ", scope='" + scope + '\'' +
                 ", type='" + type + '\'' +
                 ", classifier='" + classifier + '\'' +
+                ", optional='" + optional + '\'' +
+                ", exclusions='" + exclusions + '\'' +
                 '}';
     }
 }
