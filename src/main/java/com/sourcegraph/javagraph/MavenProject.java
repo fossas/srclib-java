@@ -177,6 +177,10 @@ public class MavenProject implements Project {
             rawDependency.classifier = d.getClassifier();
             rawDependency.type = d.getType();
             rawDependency.repoURI = null;
+            rawDependency.optional = d.isOptional();
+            rawDependency.exclusions = d.getExclusions().stream().map(exclusion -> {
+                return new RawExclusion(exclusion.getGroupId(), exclusion.getArtifactId());
+            }).collect(Collectors.toList());
             deps.add(rawDependency);
         }
 
