@@ -101,7 +101,19 @@ public class ScanCommand {
                         }
                         return dependency;
                     })
+                    // Filter maven test deps.
                     .filter(dependency -> !dependency.scope.toLowerCase().equals("test"))
+                    // Filter maven and gradle runtime deps.
+                    .filter(dependency -> !dependency.scope.toLowerCase().equals("runtime"))
+                    // Filter maven provided deps.
+                    .filter(dependency -> !dependency.scope.toLowerCase().equals("provided"))
+                    // Filter maven system deps.
+                    .filter(dependency -> !dependency.scope.toLowerCase().equals("system"))
+                    // Filter gradle test deps.
+                    .filter(dependency -> !dependency.scope.toLowerCase().equals("testCompile"))
+                    .filter(dependency -> !dependency.scope.toLowerCase().equals("testRuntime"))
+                    // Filter gradle compile only deps.
+                    .filter(dependency -> !dependency.scope.toLowerCase().equals("compileOnly"))
                     .sorted(dependencyComparator)
                     .collect(Collectors.toList());
             List<String> internalFiles = new ArrayList<>();
@@ -114,110 +126,6 @@ public class ScanCommand {
             if (unit.Data.containsKey("POMFile")) {
                 unit.Data.put("POMFile", PathUtil.relativizeCwd((String) unit.Data.get("POMFile")));
             }
-
-            // Go through POM.
-            // POM -> project -> dependencies -> dependency -> Array or Object
-            // if (unit.Data.containsKey("POM")) {
-            //   try {
-            //     JSONObject pomData = (JSONObject) unit.Data.get("POM");
-            //     JSONObject project = pomData.optJSONObject("project");
-            //     TreeSet<String> optionalDependenciesSet = new TreeSet<String>();
-            //     Map<String, JSONArray> exclusionsMap = new TreeMap<String, JSONArray>();
-            //     boolean canProceed = true;
-
-            //     if (project == null) {
-            //       canProceed = false;
-            //       LOGGER.warn("There was a formatting issue with the POM data received. No project data could be found. Could not filter optional dependencies and add exclusions.");
-            //     }
-
-            //     if (canProceed && !project.has("dependencies")) {
-            //       canProceed = false;
-            //       LOGGER.debug("No dependencies in POM. Will not filter optional dependencies and add exclusions.");
-            //     }
-
-            //     if (canProceed && !project.getJSONObject("dependencies").has("dependency")) {
-            //       canProceed = false;
-            //       LOGGER.debug("No dependencies in POM. Will not filter optional dependencies and add exclusions.");
-            //     }
-
-            //     if (canProceed) {
-            //       LOGGER.debug("Filtering optional dependencies and adding exclusions.");
-            //       Object dependencies = project.getJSONObject("dependencies").get("dependency");
-            //       JSONArray dependenciesArray;
-
-            //       if (dependencies instanceof JSONArray) {
-            //         dependenciesArray = (JSONArray)dependencies;
-            //       } else if (dependencies instanceof JSONObject) {
-            //         dependenciesArray = new JSONArray();
-            //         dependenciesArray.put((JSONObject)dependencies);
-            //       } else {
-            //         dependenciesArray = new JSONArray();
-            //       }
-
-            //       // Gather optional dependencies
-            //       for (int i = 0; i < dependenciesArray.length(); i++) {
-            //         JSONObject dependency = dependenciesArray.getJSONObject(i);
-            //         if (dependency.has("optional") && dependency.getBoolean("optional")) {
-            //           optionalDependenciesSet.add(dependency.getString("groupId") + ":" + dependency.getString("artifactId"));
-            //         }
-            //       }
-
-            //       // Gather exclusions
-            //       for (int i = 0; i < dependenciesArray.length(); i++) {
-            //         JSONObject dependency = dependenciesArray.getJSONObject(i);
-            //         if (!dependency.has("exclusions")) {
-            //           continue;
-            //         }
-
-            //         if (!dependency.getJSONObject("exclusions").has("exclusion")) {
-            //           continue;
-            //         }
-
-            //         Object exclusion = dependency.getJSONObject("exclusions").get("exclusion");
-            //         JSONArray exclusionArray = null;
-            //         if (exclusion instanceof JSONArray) {
-            //           exclusionArray = (JSONArray)exclusion;
-            //         } else if (exclusion instanceof JSONObject) {
-            //           exclusionArray = new JSONArray();
-            //           exclusionArray.put((JSONObject)exclusion);
-            //         } else {
-            //           exclusionArray = new JSONArray();
-            //         }
-
-            //         exclusionsMap.put(
-            //           dependency.getString("groupId") + ":" + dependency.getString("artifactId"),
-            //           exclusionArray
-            //         );
-            //       }
-
-            //       unit.Dependencies = unit.Dependencies.stream()
-            //       .map(dep -> {
-            //         // Mark optional dependencies
-            //         if (optionalDependenciesSet.contains(dep.groupID + ":" + dep.artifactID)) {
-            //           dep.optional = true;
-            //         } else {
-            //           dep.optional = false;
-            //         }
-            //         return dep;
-            //       })
-            //       .map(dep -> {
-            //         // Add exclusions
-            //         if (exclusionsMap.containsKey(dep.groupID + ":" + dep.artifactID)) {
-            //           dep.exclusions = new ArrayList<RawExclusion>();
-            //           JSONArray exclusionsArray = exclusionsMap.get(dep.groupID + ":" + dep.artifactID);
-            //           for (int i = 0; i < exclusionsArray.length(); i++) {
-            //             JSONObject exclusion = exclusionsArray.getJSONObject(i);
-            //             dep.exclusions.add(new RawExclusion(exclusion.getString("groupId"), exclusion.getString("artifactId")));
-            //           }
-            //         }
-            //         return dep;
-            //       })
-            //       .collect(Collectors.toList());
-            //     }
-            //   } catch (Exception e) {
-            //     LOGGER.error("Unknown exception happened when parsing POM data", e);
-            //   }
-            // }
 
             if (unit.Data.containsKey(AntProject.BUILD_XML_PROPERTY)) {
                 unit.Data.put(AntProject.BUILD_XML_PROPERTY,
