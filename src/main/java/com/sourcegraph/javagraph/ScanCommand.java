@@ -101,19 +101,19 @@ public class ScanCommand {
                         }
                         return dependency;
                     })
-                    // Filter maven test deps.
-                    .filter(dependency -> !dependency.scope.toLowerCase().equals("test"))
-                    // Filter maven and gradle runtime deps.
-                    .filter(dependency -> !dependency.scope.toLowerCase().equals("runtime"))
-                    // Filter maven provided deps.
-                    .filter(dependency -> !dependency.scope.toLowerCase().equals("provided"))
-                    // Filter maven system deps.
-                    .filter(dependency -> !dependency.scope.toLowerCase().equals("system"))
-                    // Filter gradle test deps.
-                    .filter(dependency -> !dependency.scope.toLowerCase().equals("testCompile"))
-                    .filter(dependency -> !dependency.scope.toLowerCase().equals("testRuntime"))
-                    // Filter gradle compile only deps.
-                    .filter(dependency -> !dependency.scope.toLowerCase().equals("compileOnly"))
+                    // // Filter maven test deps.
+                    // .filter(dependency -> !dependency.scope.toLowerCase().equals("test"))
+                    // // Filter maven and gradle runtime deps.
+                    // .filter(dependency -> !dependency.scope.toLowerCase().equals("runtime"))
+                    // // Filter maven provided deps.
+                    // .filter(dependency -> !dependency.scope.toLowerCase().equals("provided"))
+                    // // Filter maven system deps.
+                    // .filter(dependency -> !dependency.scope.toLowerCase().equals("system"))
+                    // // Filter gradle test deps.
+                    // .filter(dependency -> !dependency.scope.toLowerCase().equals("testCompile"))
+                    // .filter(dependency -> !dependency.scope.toLowerCase().equals("testRuntime"))
+                    // // Filter gradle compile only deps.
+                    // .filter(dependency -> !dependency.scope.toLowerCase().equals("compileOnly"))
                     .sorted(dependencyComparator)
                     .collect(Collectors.toList());
             List<String> internalFiles = new ArrayList<>();
