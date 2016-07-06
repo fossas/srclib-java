@@ -1,5 +1,7 @@
 package com.sourcegraph.javagraph;
 
+import io.fossa.config.FossaConfig;
+
 import com.beust.jcommander.Parameter;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
@@ -23,6 +25,8 @@ import java.util.TreeSet;
 public class ScanCommand {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ScanCommand.class);
+
+    private static final FossaConfig fossaConfig = FossaConfig.getFossaConfig();
 
     @Parameter(names = {"--repo"}, description = "The URI of the repository that contains the directory tree being scanned")
     String repoURI;
@@ -52,7 +56,7 @@ public class ScanCommand {
             List<SourceUnit> units = new ArrayList<>();
             // Recursively find all Maven and Gradle projects.
             LOGGER.info("Collecting Maven source units");
-            units.addAll(MavenProject.findAllSourceUnits());
+            units.addAll(MavenProject.findAllSourceUnits(fossaConfig.getProfiles()));
             LOGGER.info("Collecting Gradle source units");
             units.addAll(GradleProject.findAllSourceUnits());
             LOGGER.info("Collecting Ant source units");
@@ -101,19 +105,6 @@ public class ScanCommand {
                         }
                         return dependency;
                     })
-                    // // Filter maven test deps.
-                    // .filter(dependency -> !dependency.scope.toLowerCase().equals("test"))
-                    // // Filter maven and gradle runtime deps.
-                    // .filter(dependency -> !dependency.scope.toLowerCase().equals("runtime"))
-                    // // Filter maven provided deps.
-                    // .filter(dependency -> !dependency.scope.toLowerCase().equals("provided"))
-                    // // Filter maven system deps.
-                    // .filter(dependency -> !dependency.scope.toLowerCase().equals("system"))
-                    // // Filter gradle test deps.
-                    // .filter(dependency -> !dependency.scope.toLowerCase().equals("testCompile"))
-                    // .filter(dependency -> !dependency.scope.toLowerCase().equals("testRuntime"))
-                    // // Filter gradle compile only deps.
-                    // .filter(dependency -> !dependency.scope.toLowerCase().equals("compileOnly"))
                     .sorted(dependencyComparator)
                     .collect(Collectors.toList());
             List<String> internalFiles = new ArrayList<>();

@@ -66,6 +66,8 @@ public class MavenProject implements Project {
 
     private SourceUnit unit;
 
+    private List<String> profileIds;
+
     private static RepositorySystem repositorySystem;
     private static RepositorySystemSession repositorySystemSession;
 
@@ -76,10 +78,16 @@ public class MavenProject implements Project {
     public MavenProject(SourceUnit unit) {
         this.unit = unit;
         this.pomFile = FileSystems.getDefault().getPath((String) unit.Data.get("POMFile")).toAbsolutePath();
+        this.profileIds = new ArrayList<String>();
     }
 
     public MavenProject(Path pomFile) {
+        this(pomFile, new ArrayList<String>());
+    }
+
+    public MavenProject(Path pomFile, List<String> profileIds) {
         this.pomFile = pomFile;
+        this.profileIds = profileIds;
     }
 
     /**
@@ -105,6 +113,9 @@ public class MavenProject implements Project {
             ModelBuildingRequest request = new DefaultModelBuildingRequest();
             request.setSystemProperties(System.getProperties());
             request.setPomFile(pomFile.toFile());
+            if (profileIds.size() > 0) {
+                request.setActiveProfileIds(profileIds);
+            }
             request.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL);
             // alexsaveliev: adding a resolver used by model builder to fetch POM files
             request.setModelResolver(new MavenModelResolver(new DefaultRemoteRepositoryManager(),
@@ -112,7 +123,12 @@ public class MavenProject implements Project {
                     repositorySystemSession));
             ModelBuildingResult result = factory.newInstance().build(request);
             mavenProject = new org.apache.maven.project.MavenProject(result.getEffectiveModel());
-            LOGGER.debug("Maven project structure is built", pomFile);
+            for (String modelId : result.getModelIds()) {
+                mavenProject.getModel().getProfiles().stream()
+                            .filter(profile -> profileIds.contains(profile.getId()))
+                            .collect(Collectors.toList());
+            }
+            LOGGER.debug("Maven project structure is built {}", pomFile);
             // applying all registered plugins to adjust project data
             MavenPlugins.getInstance().apply(mavenProject, PathUtil.CWD.resolve(getRepoDir()).toFile());
         }
@@ -296,7 +312,7 @@ public class MavenProject implements Project {
      * @return all source units collected
      * @throws IOException
      */
-    public static Collection<SourceUnit> findAllSourceUnits() throws IOException {
+    public static Collection<SourceUnit> findAllSourceUnits(List<String> profileIds) throws IOException {
 
         LOGGER.debug("Retrieving source units");
 
@@ -313,7 +329,7 @@ public class MavenProject implements Project {
                 LOGGER.debug("Processing POM file {}", pomFile.toAbsolutePath());
             }
             try {
-                MavenProject project = new MavenProject(pomFile);
+                MavenProject project = new MavenProject(pomFile, profileIds);
                 BuildAnalysis.BuildInfo info = createBuildInfo(project);
                 infos.add(info);
                 artifactsByUnitId.put(info.getName() + '/' + info.version, info);
