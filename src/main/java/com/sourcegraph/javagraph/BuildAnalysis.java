@@ -10,10 +10,12 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Extracts build meta information from source unit build file (pom.xml or .gradle)
@@ -297,14 +299,21 @@ public class BuildAnalysis {
                                 if (info == null) {
                                     continue;
                                 }
-                                String[] parts = payload.split(":", 5);
-                                info.dependencies.add(new RawDependency(
+                                String[] parts = payload.split(":", 6);
+                                RawDependency dep = new RawDependency(
                                         POMAttrs.groupId(parts[1]), // GroupID
                                         parts[2], // ArtifactID
                                         parts[3], // Version
                                         parts[0], // Scope
                                         parts.length > 4 ? parts[4] : null // file
-                                ));
+                                );
+                                if (!StringUtils.isEmpty(parts[5])) {
+                                    dep.exclusions = Arrays.asList(parts[5].split(",")).stream().map(exclusion -> {
+                                        String[] exclusionParts = exclusion.split("\\|", 2);
+                                        return new RawExclusion((!StringUtils.isEmpty(exclusionParts[0])) ? exclusionParts[0] : null, (!StringUtils.isEmpty(exclusionParts[1])) ? exclusionParts[1] : null);
+                                    }).collect(Collectors.toList());
+                                }
+                                info.dependencies.add(dep);
                                 break;
                             case "SRCLIB-DESCRIPTION":
                                 if (info == null) {

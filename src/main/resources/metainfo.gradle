@@ -151,6 +151,20 @@ def collectBuildableDependencies(project, task, dependency, target) {
 	}
 }
 
+// Assumes maven repository
+// Ivy repository may not need all this information
+def isSimilarDependency(group1, name1, version1, group2, name2, version2) {
+    return name1.equals(name2) && group1.equals(group2) && version1.equals(version2)
+}
+
+def excludeToString(exclude) {
+    String group = exclude.getGroup()
+    if (group == null) group = ""
+    String name = exclude.getModule()
+    if (name == null) name = ""
+    return "$group|$name"
+}
+
 allprojects {
 
     afterEvaluate { project ->
@@ -184,14 +198,27 @@ allprojects {
 
             try {
                 project.configurations.each { conf ->
+                    Set<ExcludeRule> confExcludes = conf.getExcludeRules().collectMany{ [it] }
+                    Set<Dependency> confDependencies = conf.getAllDependencies()
+
                     conf.resolvedConfiguration.getResolvedArtifacts().each {
                         try {
                             String group = it.moduleVersion.id.group
                             String name = it.moduleVersion.id.name
                             String version = it.moduleVersion.id.version
                             String file = it.file
+                            String excludes = [confExcludes, confDependencies.collectMany { d ->
+                                if (d instanceof ModuleDependency && isSimilarDependency(group, name, version, d.getGroup(), d.getName(), d.getVersion())) {
+                                    return d.getExcludeRules().collectMany{ [it] }
+                                } else {
+                                    return []
+                                }
+                            }].flatten().collectMany { d ->
+                                return [excludeToString(d)]
+                            }.join(",")
+
                             if (isConfigSupported(conf)) {
-                                println "SRCLIB-DEPENDENCY $conf.name:$group:$name:$version:$file"
+                                println "SRCLIB-DEPENDENCY $conf.name:$group:$name:$version:$file:$excludes"
                             }
                         } catch (Exception e) {
                             println "SRCLIB-WARNING $e"
