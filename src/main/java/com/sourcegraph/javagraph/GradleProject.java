@@ -211,24 +211,30 @@ public class GradleProject implements Project {
 
     /**
      * Collects all source units from all Gradle build files in current working directory
+     * @param buildfile relative path to build file
      * @return collection of source units
      * @throws IOException
      */
-    public static Collection<SourceUnit> findAllSourceUnits() throws IOException {
+    public static Collection<SourceUnit> findAllSourceUnits(String buildfile) throws IOException {
 
         LOGGER.debug("Retrieving source units");
 
         // putting root gradle file first, it may contain references to all the subprojects
         Set<Path> gradleFiles = new LinkedHashSet<>();
-        File rootGradleFile = PathUtil.CWD.resolve("build.gradle").toFile();
-        if (rootGradleFile.isFile()) {
-            gradleFiles.add(rootGradleFile.toPath().toAbsolutePath().normalize());
+        File rootGradleFile = null;
+        if (buildfile != null) {
+            rootGradleFile = PathUtil.CWD.resolve(buildfile).toFile();
         } else {
-            // alexsaveliev: trying settings.gradle - build file name may be custom one
-            // (see https://github.com/Netflix/archaius)
-            rootGradleFile = PathUtil.CWD.resolve("settings.gradle").toFile();
+            rootGradleFile = PathUtil.CWD.resolve("build.gradle").toFile();
             if (rootGradleFile.isFile()) {
                 gradleFiles.add(rootGradleFile.toPath().toAbsolutePath().normalize());
+            } else {
+                // alexsaveliev: trying settings.gradle - build file name may be custom one
+                // (see https://github.com/Netflix/archaius)
+                rootGradleFile = PathUtil.CWD.resolve("settings.gradle").toFile();
+                if (rootGradleFile.isFile()) {
+                    gradleFiles.add(rootGradleFile.toPath().toAbsolutePath().normalize());
+                }
             }
         }
 

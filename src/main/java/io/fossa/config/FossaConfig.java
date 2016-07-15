@@ -1,5 +1,6 @@
 package io.fossa.config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -9,21 +10,28 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class FossaConfig {
 
     private List<String> profiles = new ArrayList<String>();
+    private String gradleBuildFile = null;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FossaConfig.class);
     private static FossaConfig instance;
 
     public static final String FILENAME = ".fossaconfig";
 
+    // File config
     public static final String CONFIG_PROFILES = "profiles";
+
+    // Env vars
+    public static final String CONFIG_GRADLE_BUILD_FILE = "FOSSA_GRADLE_BUILD_FILE";
 
 
     public FossaConfig(JSONObject config) {
         extrapolateConfig(config);
+        assignEnvVars(System.getenv());
     }
 
     private void extrapolateConfig(JSONObject config) {
@@ -32,6 +40,12 @@ public class FossaConfig {
             for (int i = 0; i < profiles.length(); i++) {
                 this.profiles.add(profiles.getString(i));
             }
+        }
+    }
+
+    private void assignEnvVars(Map<String, String> envvars) {
+        if (envvars.containsKey(CONFIG_GRADLE_BUILD_FILE) && !StringUtils.isEmpty(envvars.get(CONFIG_GRADLE_BUILD_FILE))) {
+            this.gradleBuildFile = envvars.get(CONFIG_GRADLE_BUILD_FILE);
         }
     }
 
@@ -68,5 +82,9 @@ public class FossaConfig {
 
     public List<String> getProfiles() {
         return profiles;
+    }
+
+    public String getGradleBuildFile() {
+        return gradleBuildFile;
     }
 }

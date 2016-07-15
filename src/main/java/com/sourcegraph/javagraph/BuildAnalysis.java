@@ -229,6 +229,11 @@ public class BuildAnalysis {
                 // alexsaveliev: Android Support framework comes with gradle wrapper that defines own project-cache-dir
                 gradleArgs.add("--project-cache-dir");
                 gradleArgs.add(gradleCacheDir.toString());
+                if (!build.getFileName().toString().equals("build.gradle")
+                        && !build.getFileName().toString().equals("settingsl.gradle")) {
+                    gradleArgs.add("-b");
+                    gradleArgs.add(build.toAbsolutePath().toString());
+                }
                 //}
                 // disabling parallel builds
                 gradleArgs.add("-Dorg.gradle.parallel=false");

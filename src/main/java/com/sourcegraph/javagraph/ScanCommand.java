@@ -58,7 +58,7 @@ public class ScanCommand {
             LOGGER.info("Collecting Maven source units");
             units.addAll(MavenProject.findAllSourceUnits(fossaConfig.getProfiles()));
             LOGGER.info("Collecting Gradle source units");
-            units.addAll(GradleProject.findAllSourceUnits());
+            units.addAll(GradleProject.findAllSourceUnits(fossaConfig.getGradleBuildFile()));
             LOGGER.info("Collecting Ant source units");
             units.addAll(AntProject.findAllSourceUnits());
             normalize(units);
