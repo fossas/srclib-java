@@ -165,12 +165,27 @@ def excludeToString(exclude) {
     return "$group|$name"
 }
 
+def grabLicenses(path) {
+    def list = new XmlSlurper().parseText(new File(path).text)
+}
+
+initscript {
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+  dependencies {
+    classpath "gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.13.1"
+  }
+}
+
 allprojects {
+    apply plugin: nl.javadude.gradle.plugins.license.LicensePlugin
 
     afterEvaluate { project ->
 
-        task srclibCollectMetaInformation << { task ->
-
+        task srclibCollectMetaInformation(dependsOn: "downloadLicenses") << { task ->
             String desc = project.description
             if (desc == null) {
                 desc = ""

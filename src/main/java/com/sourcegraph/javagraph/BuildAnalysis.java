@@ -229,6 +229,9 @@ public class BuildAnalysis {
                 // alexsaveliev: Android Support framework comes with gradle wrapper that defines own project-cache-dir
                 gradleArgs.add("--project-cache-dir");
                 gradleArgs.add(gradleCacheDir.toString());
+                gradleArgs.add("--debug");
+                gradleArgs.add("--info");
+                gradleArgs.add("--stacktrace");
                 //}
                 // disabling parallel builds
                 gradleArgs.add("-Dorg.gradle.parallel=false");
@@ -252,6 +255,9 @@ public class BuildAnalysis {
                 Path workDir = build.toAbsolutePath().getParent();
                 ProcessBuilder pb = new ProcessBuilder(gradleArgs);
 
+                LOGGER.info("Running {} using working directory {}",
+                            StringUtils.join(gradleArgs, ' '),
+                            workDir.normalize());
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Running {} using working directory {}",
                             StringUtils.join(gradleArgs, ' '),
@@ -425,8 +431,8 @@ public class BuildAnalysis {
 
                 return results.toArray(new BuildInfo[results.size()]);
             } finally {
-                FileUtils.deleteDirectory(gradleCacheDir.toString());
-                Files.deleteIfExists(modifiedGradleScriptFile);
+                // FileUtils.deleteDirectory(gradleCacheDir.toString());
+                // Files.deleteIfExists(modifiedGradleScriptFile);
             }
         }
 
