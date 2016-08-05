@@ -149,10 +149,6 @@ public class MavenProject implements Project {
             LOGGER.debug("Maven project structure is built {}", pomFile);
             // applying all registered plugins to adjust project data
             MavenPlugins.getInstance().apply(mavenProject, PathUtil.CWD.resolve(getRepoDir()).toFile());
-            // Apply repository configs
-            if (this.artifactRepositories != null && this.artifactRepositories.size() > 0) {
-                mavenProject.setRemoteArtifactRepositories(this.artifactRepositories);
-            }
         }
         return mavenProject;
     }
