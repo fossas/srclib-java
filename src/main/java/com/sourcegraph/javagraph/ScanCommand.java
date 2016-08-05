@@ -56,7 +56,7 @@ public class ScanCommand {
             List<SourceUnit> units = new ArrayList<>();
             // Recursively find all Maven and Gradle projects.
             LOGGER.info("Collecting Maven source units");
-            units.addAll(MavenProject.findAllSourceUnits(fossaConfig.getProfiles()));
+            units.addAll(MavenProject.findAllSourceUnits(fossaConfig.getProfiles(), fossaConfig.getMavenArtifactRepositories()));
             LOGGER.info("Collecting Gradle source units");
             units.addAll(GradleProject.findAllSourceUnits(fossaConfig.getGradleBuildFile()));
             LOGGER.info("Collecting Ant source units");
