@@ -162,10 +162,11 @@ public class GradleProject implements Project {
                 }
             }
 
-            if (info.sources.isEmpty()) {
-                // excluding units without sources
-                continue;
-            }
+            // if (info.sources.isEmpty()) {
+            //     LOGGER.debug("Removing build info because it lacks sources: {}", info.getName());
+            //     // excluding units without sources
+            //     continue;
+            // }
             final SourceUnit unit = new SourceUnit();
             unit.Type = SourceUnit.DEFAULT_TYPE;
             unit.Name = info.getName();

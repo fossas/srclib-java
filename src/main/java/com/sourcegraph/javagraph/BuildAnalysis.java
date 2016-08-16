@@ -283,8 +283,10 @@ public class BuildAnalysis {
                         }
                         String meta[] = parseMeta(line);
                         if (meta == null) {
-                            LOGGER.debug("gradle: {}", line);
+                            LOGGER.debug("Skipping line {}.", line);
                             continue;
+                        } else {
+                            LOGGER.debug("Processing line {}.", line);
                         }
                         String prefix = meta[0];
                         String payload = meta[1];
@@ -304,6 +306,7 @@ public class BuildAnalysis {
                                 if (info == null) {
                                     continue;
                                 }
+                                LOGGER.debug("Found dependency: {}", line);
                                 String[] parts = payload.split(":", 6);
                                 RawDependency dep = new RawDependency(
                                         POMAttrs.groupId(parts[1]), // GroupID
@@ -319,6 +322,7 @@ public class BuildAnalysis {
                                     }).collect(Collectors.toList());
                                 }
                                 info.dependencies.add(dep);
+                                LOGGER.debug("Processed dependency: {}", line);
                                 break;
                             case "SRCLIB-DESCRIPTION":
                                 if (info == null) {
@@ -353,6 +357,7 @@ public class BuildAnalysis {
                                 }
                                 break;
                             case "SRCLIB-SOURCEFILE":
+                                LOGGER.debug("Found source file: {}", line);
                                 if (info == null) {
                                     continue;
                                 }
@@ -360,6 +365,7 @@ public class BuildAnalysis {
                                 if (file.isFile()) {
                                     info.sources.add(file.getAbsolutePath());
                                 }
+                                LOGGER.debug("Processed source file: {}", line);
                                 break;
                             case "SRCLIB-SOURCEDIR":
                                 if (info == null) {
