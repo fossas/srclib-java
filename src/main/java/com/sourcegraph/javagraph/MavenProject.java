@@ -787,6 +787,9 @@ public class MavenProject implements Project {
 
         public void addRepository(RemoteRepository repository, boolean replace) throws InvalidRepositoryException {
             String id = repository.getId();
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Adding resolver repository with ID {} and registry URL {}", id, repository.getUrl());
+            }
 
             if (repositoryKeys.contains(id)) {
                 if (!replace) {
@@ -810,8 +813,10 @@ public class MavenProject implements Project {
 
         @Override
         public void addRepository(Repository repository, boolean replace) throws InvalidRepositoryException {
-
             String id = repository.getId();
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Adding resolver repository with ID {} and registry URL {}", id, repository.getUrl());
+            }
 
             if (repositoryKeys.contains(id)) {
                 if (!replace) {
