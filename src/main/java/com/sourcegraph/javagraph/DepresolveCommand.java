@@ -1,5 +1,7 @@
 package com.sourcegraph.javagraph;
 
+import io.fossa.config.FossaConfig;
+
 import com.beust.jcommander.Parameter;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
@@ -16,6 +18,8 @@ import java.util.ArrayList;
 public class DepresolveCommand {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DepresolveCommand.class);
+
+    private static final FossaConfig fossaConfig = FossaConfig.getFossaConfig();
 
     @Parameter(names = {"--debug-unit-file"}, description = "The path to a source unit input file, which will be read as though it came from stdin. Used to mimic stdin when you can't actually pipe to stdin (e.g., in IntelliJ run configurations).")
     String debugUnitFile;
@@ -43,7 +47,7 @@ public class DepresolveCommand {
         LOGGER.info("Resolving dependencies of {}", unit.Name);
 
         Project project = unit.getProject();
-        Resolver rs = new Resolver(project, unit);
+        Resolver rs = new Resolver(project, unit, fossaConfig.getMavenArtifactRepositories());
 
         LOGGER.debug("Resolving deps");
         // Resolve all raw dependencies.

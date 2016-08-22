@@ -158,7 +158,7 @@ public class MavenProject implements Project {
      *
      * @return repository system
      */
-    private static RepositorySystem newRepositorySystem() {
+    public static RepositorySystem newRepositorySystem() {
         DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
         locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
         locator.addService(TransporterFactory.class, FileTransporterFactory.class);
@@ -180,7 +180,7 @@ public class MavenProject implements Project {
      * @param system repository system to use
      * @return repository system session
      */
-    private static RepositorySystemSession newRepositorySystemSession(RepositorySystem system) {
+    public static RepositorySystemSession newRepositorySystemSession(RepositorySystem system) {
         DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
 
         String repoDir = getRepoDir();

@@ -3,9 +3,15 @@ package com.sourcegraph.javagraph;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.RepositoryUtils;
+import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Scm;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.repository.AuthenticationContext;
+import org.eclipse.aether.repository.RemoteRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,8 +21,10 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,12 +41,17 @@ public class Resolver {
 
     private final Project proj;
     private final SourceUnit unit;
+    private List<ArtifactRepository> artifactRepositories;
 
+    private static RepositorySystem repositorySystem;
+    private static RepositorySystemSession repositorySystemSession;
     private Map<String, DepResolution> depsCache;
 
     private static Map<Pattern, String> overrides;
 
     static {
+        initRepositorySystem();
+
         overrides = new HashMap<>();
         InputStream is = Resolver.class.getResourceAsStream("/resolver.properties");
         if (is != null) {
@@ -55,13 +68,22 @@ public class Resolver {
     }
 
     /**
+     * Initializes Maven's local repository system and session
+     */
+    private static void initRepositorySystem() {
+        repositorySystem = MavenProject.newRepositorySystem();
+        repositorySystemSession = MavenProject.newRepositorySystemSession(repositorySystem);
+    }
+
+    /**
      * Constructs new resolver object
      * @param proj project to use
      * @param unit source unit
      */
-    public Resolver(Project proj, SourceUnit unit) {
+    public Resolver(Project proj, SourceUnit unit, List<ArtifactRepository> artifactRepositories) {
         this.proj = proj;
         this.unit = unit;
+        this.artifactRepositories = artifactRepositories;
         this.depsCache = new HashMap<>();
     }
 
@@ -230,42 +252,64 @@ public class Resolver {
             return resolution;
         }
 
-        // Get the url to the POM file for this artifact
-        String url = "http://central.maven.org/maven2/"
-                + groupId.replace('.', '/') + '/' + d.artifactID + '/'
-                + d.version + '/' + d.artifactID + '-' + d.version + ".pom";
-
         DepResolution res = new DepResolution(d, null);
 
-        try {
+        List<RemoteRepository> remoteRepositories = RepositoryUtils.toRepos( this.artifactRepositories );
+        remoteRepositories.add(0, new RemoteRepository.Builder(
+                "central", "default", "http://central.maven.org/maven2/").build());
 
-            InputStream input = new BOMInputStream(new URL(url).openStream());
+        // Get the url to the POM file for this artifact
+        for (RemoteRepository repo : remoteRepositories) {
+            String urlBase = repo.getUrl();
 
-            MavenXpp3Reader xpp3Reader = new MavenXpp3Reader();
-            Model model = xpp3Reader.read(input);
-            input.close();
-
-            Scm scm = model.getScm();
-            if (scm != null) {
-                cloneURL = scm.getUrl();
+            if (!urlBase.endsWith("/")) {
+                urlBase += "/";
             }
 
-            if (cloneURL != null) {
-                res.Raw = d;
+            String url = urlBase
+                + groupId.replace('.', '/') + '/' + d.artifactID + '/'
+                + d.version + '/' + d.artifactID + '-' + d.version + ".pom";
+            LOGGER.debug("Trying to resolve dependency {} - {}", d, url);
 
-                ResolvedTarget target = new ResolvedTarget();
-                target.ToRepoCloneURL = cloneURL;
-                target.ToUnit = groupId + '/' + d.artifactID;
-                target.ToUnitType = SourceUnit.DEFAULT_TYPE;
-                target.ToVersionString = d.version;
+            try {
+                URLConnection urlConnection = new URL(url).openConnection();
+                if (repo.getAuthentication() != null) {
+                    AuthenticationContext context = AuthenticationContext.forRepository(repositorySystemSession, repo);
+                    String header = context.get(AuthenticationContext.USERNAME) + ":" + context.get(AuthenticationContext.PASSWORD);
+                    urlConnection.setRequestProperty("Authorization", "Basic " + Base64.getEncoder().encodeToString(header.getBytes()));
+                }
+                InputStream input = new BOMInputStream(urlConnection.getInputStream());
 
-                res.Target = target;
-            } else {
-                res.Error = d.artifactID + " does not have an associated SCM repository.";
+                MavenXpp3Reader xpp3Reader = new MavenXpp3Reader();
+                Model model = xpp3Reader.read(input);
+                input.close();
+
+                Scm scm = model.getScm();
+                if (scm != null) {
+                    cloneURL = scm.getUrl();
+                }
+
+                if (cloneURL != null) {
+                    res.Raw = d;
+
+                    ResolvedTarget target = new ResolvedTarget();
+                    target.ToRepoCloneURL = cloneURL;
+                    target.ToUnit = groupId + '/' + d.artifactID;
+                    target.ToUnitType = SourceUnit.DEFAULT_TYPE;
+                    target.ToVersionString = d.version;
+
+                    res.Target = target;
+                } else {
+                    res.Error = d.artifactID + " does not have an associated SCM repository.";
+                    LOGGER.debug("Unable to find SCM repository {} - {}", d, res.Error);
+                }
+
+                break;
+
+            } catch (Exception e) {
+                res.Error = "Could not download file " + e.getMessage();
+                LOGGER.debug("Unable to resolve dependency {} - {}, trying next server...", d, res.Error);
             }
-
-        } catch (Exception e) {
-            res.Error = "Could not download file " + e.getMessage();
         }
 
         if (res.Error != null) {
@@ -273,6 +317,7 @@ public class Resolver {
             LOGGER.info("Unable to resolve dependency {} - {}", d, res.Error);
         }
         depsCache.put(key, res);
+
         return res;
     }
 

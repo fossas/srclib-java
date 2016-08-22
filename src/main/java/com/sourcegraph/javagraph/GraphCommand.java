@@ -1,5 +1,7 @@
 package com.sourcegraph.javagraph;
 
+import io.fossa.config.FossaConfig;
+
 import com.beust.jcommander.Parameter;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +19,8 @@ import java.util.*;
 public class GraphCommand {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphCommand.class);
+
+    private static final FossaConfig fossaConfig = FossaConfig.getFossaConfig();
 
     @Parameter(names = {"--debug-unit-file"}, description = "The path to a source unit input file, which will be read as though it came from stdin. Used to mimic stdin when you can't actually pipe to stdin (e.g., in IntelliJ run configurations).")
     String debugUnitFile;
@@ -53,7 +57,7 @@ public class GraphCommand {
         LOGGER.info("Building graph for {}", unit.Name);
 
         Project proj = unit.getProject();
-        Resolver rs = new Resolver(proj, unit);
+        Resolver rs = new Resolver(proj, unit, fossaConfig.getMavenArtifactRepositories());
         try {
             Grapher grapher = new Grapher(proj,
                     rawGraph);
