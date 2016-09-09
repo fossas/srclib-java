@@ -123,6 +123,7 @@ public class MavenProject implements Project {
             request.setSystemProperties(System.getProperties());
             request.setPomFile(pomFile.toFile());
             if (profileIds.size() > 0) {
+                LOGGER.debug("Using profiles: " + profileIds.toString());
                 request.setActiveProfileIds(profileIds);
             }
             request.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL);

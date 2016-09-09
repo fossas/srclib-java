@@ -30,11 +30,13 @@ public class FossaConfig {
     public static final String FILENAME = ".fossaconfig";
 
     // File config
-    public static final String CONFIG_PROFILES = "profiles";
+    // public static final String CONFIG_PROFILES = "profiles";
 
     // Env vars
+    public static final String CONFIG_FILENAME = "FOSSA_CONFIG_FILE";
     public static final String CONFIG_GRADLE_BUILD_FILE = "FOSSA_GRADLE_BUILD_FILE";
     public static final String CONFIG_MAVEN_SETTINGS = "FOSSA_MAVEN_SETTINGS";
+    public static final String CONFIG_MAVEN_PROFILES = "FOSSA_MAVEN_PROFILES";
 
     // Keys
     public static final String KEY_MAVEN_SETTINGS_SERVERS = "servers";
@@ -42,22 +44,29 @@ public class FossaConfig {
 
 
     public FossaConfig(JSONObject config) {
-        extrapolateConfig(config);
+        // extrapolateConfig(config);
         assignEnvVars(System.getenv());
     }
 
-    private void extrapolateConfig(JSONObject config) {
-        if (config.has(CONFIG_PROFILES)) {
-            JSONArray profiles = config.getJSONArray(CONFIG_PROFILES);
-            for (int i = 0; i < profiles.length(); i++) {
-                this.profiles.add(profiles.getString(i));
-            }
-        }
-    }
+    // private void extrapolateConfig(JSONObject config) {
+    //     if (config.has(CONFIG_PROFILES)) {
+    //         JSONArray profiles = config.getJSONArray(CONFIG_PROFILES);
+    //         for (int i = 0; i < profiles.length(); i++) {
+    //             this.profiles.add(profiles.getString(i));
+    //         }
+    //     }
+    // }
 
     private void assignEnvVars(Map<String, String> envvars) {
         if (envvars.containsKey(CONFIG_GRADLE_BUILD_FILE) && !StringUtils.isEmpty(envvars.get(CONFIG_GRADLE_BUILD_FILE))) {
             this.gradleBuildFile = envvars.get(CONFIG_GRADLE_BUILD_FILE);
+        }
+
+        if (envvars.containsKey(CONFIG_MAVEN_PROFILES) && !StringUtils.isEmpty(envvars.get(CONFIG_MAVEN_PROFILES))) {
+            JSONArray result = new JSONArray(envvars.get(CONFIG_MAVEN_PROFILES));
+            for (int i = 0; i < result.length(); i++) {
+                this.profiles.add(result.getString(i));
+            }
         }
 
         if (envvars.containsKey(CONFIG_MAVEN_SETTINGS) && !StringUtils.isEmpty(envvars.get(CONFIG_MAVEN_SETTINGS))) {
@@ -92,7 +101,7 @@ public class FossaConfig {
      */
     public static FossaConfig getFossaConfig() {
         if (instance == null) {
-            String filename = System.getenv("FOSSA_CONFIG_FILE");
+            String filename = System.getenv(CONFIG_FILENAME);
             if (filename == null) {
                 filename = FILENAME;
             }
@@ -108,7 +117,7 @@ public class FossaConfig {
                 String jsonString = new String(data, "UTF-8");
                 result = new JSONObject(jsonString);
             } catch (Exception e) {
-                LOGGER.warn("Could not parse Fossa Config.", e);
+                // LOGGER.warn("Could not parse Fossa Config.", e);
                 result = new JSONObject();
             }
 
