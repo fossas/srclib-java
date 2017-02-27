@@ -9,14 +9,6 @@
       ]
     },
     {
-      "Subcmd": "graph",
-      "Op": "graph",
-      "SourceUnitTypes": [
-        "JavaArtifact",
-        "Java"
-      ]
-    },
-    {
       "Subcmd": "depresolve",
       "Op": "depresolve",
       "SourceUnitTypes": [
