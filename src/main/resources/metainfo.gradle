@@ -177,6 +177,11 @@ allprojects {
     afterEvaluate { project ->
 
         task srclibCollectMetaInformation << { task ->
+            System.clearProperty('http.proxyHost')
+            System.clearProperty('http.proxyPort')
+            System.clearProperty('http.proxyUser')
+            System.clearProperty('http.proxyPassword')
+            System.clearProperty('http.nonProxyHosts')
 
             String desc = project.description
             if (desc == null) {
