@@ -237,6 +237,8 @@ public class BuildAnalysis {
                 //}
                 // disabling parallel builds
                 gradleArgs.add("-Dorg.gradle.parallel=false");
+                gradleArgs.add("-Dhttp.proxyHost=");
+                gradleArgs.add("-Dhttp.proxyPort=");
                 gradleArgs.add("srclibCollectMetaInformation");
 
                 if (SystemUtils.IS_OS_WINDOWS) {

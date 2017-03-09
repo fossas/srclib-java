@@ -1,5 +1,12 @@
+def canBeResolved(conf) {
+    // Configuration.isCanBeResolved() has been introduced with Gradle 3.3,
+    // thus we need to check for the method's existence first
+    conf.metaClass.respondsTo(conf, "isCanBeResolved") ?
+            conf.isCanBeResolved() : true
+}
+
 def isConfigSupported(conf) {
-	return (conf.name == "compile" || conf.name == "testCompile" || conf.name == "provided" ||  conf.name == "compileOnly");
+	return (conf.name == "compile" || conf.name == "testCompile" || conf.name == "provided" ||  conf.name == "compileOnly") && canBeResolved(conf);
 }
 
 def listSourceFiles(task) {
@@ -201,44 +208,45 @@ allprojects {
                     Set<ExcludeRule> confExcludes = conf.getExcludeRules().collectMany{ [it] }
                     Set<Dependency> confDependencies = conf.getAllDependencies()
 
-                    conf.resolvedConfiguration.getResolvedArtifacts().each {
-                        try {
-                            String group = it.moduleVersion.id.group
-                            String name = it.moduleVersion.id.name
-                            String version = it.moduleVersion.id.version
-                            String file = it.file
-                            String excludes = [confExcludes, confDependencies.collectMany { d ->
-                                if (d instanceof ModuleDependency && isSimilarDependency(group, name, version, d.getGroup(), d.getName(), d.getVersion())) {
-                                    return d.getExcludeRules().collectMany{ [it] }
-                                } else {
-                                    return []
+                    if (isConfigSupported(conf)) {
+                        conf.resolvedConfiguration.getResolvedArtifacts().each {
+                            try {
+                                String group = it.moduleVersion.id.group
+                                String name = it.moduleVersion.id.name
+                                String version = it.moduleVersion.id.version
+                                String file = it.file
+                                String excludes = [confExcludes, confDependencies.collectMany { d ->
+                                    if (d instanceof ModuleDependency && isSimilarDependency(group, name, version, d.getGroup(), d.getName(), d.getVersion())) {
+                                        return d.getExcludeRules().collectMany{ [it] }
+                                    } else {
+                                        return []
+                                    }
+                                }].flatten().collectMany { d ->
+                                    return [excludeToString(d)]
+                                }.join(",")
+
+                                if (isConfigSupported(conf)) {
+                                    println "SRCLIB-DEPENDENCY $conf.name:$group:$name:$version:$file:$excludes"
                                 }
-                            }].flatten().collectMany { d ->
-                                return [excludeToString(d)]
-                            }.join(",")
-
-                            if (isConfigSupported(conf)) {
-                                println "SRCLIB-DEPENDENCY $conf.name:$group:$name:$version:$file:$excludes"
-                            }
-                        } catch (Exception e) {
-                            println "SRCLIB-WARNING $e"
-                        }
-                    }
-
-                    conf.getAllDependencies().each { d ->
-                        if (d instanceof ProjectDependency) {
-                            Project p = ((ProjectDependency) d).getDependencyProject()
-                            if (isConfigSupported(conf)) {
-                                if (p.buildFile) {
-                                    println "SRCLIB-PROJECTDEPENDENCY $p.name:$p.group:$p.buildFile.absolutePath"
-                                } else {
-                                    println "SRCLIB-PROJECTDEPENDENCY $p.name:$p.group:"
-                                }
-
+                            } catch (Exception e) {
+                                println "SRCLIB-WARNING $e"
                             }
                         }
-                    }
 
+                        conf.getAllDependencies().each { d ->
+                            if (d instanceof ProjectDependency) {
+                                Project p = ((ProjectDependency) d).getDependencyProject()
+                                if (isConfigSupported(conf)) {
+                                    if (p.buildFile) {
+                                        println "SRCLIB-PROJECTDEPENDENCY $p.name:$p.group:$p.buildFile.absolutePath"
+                                    } else {
+                                        println "SRCLIB-PROJECTDEPENDENCY $p.name:$p.group:"
+                                    }
+
+                                }
+                            }
+                        }
+                    }
                 }
             } catch (e) {
                 println "SRCLIB-WARNING $e"
