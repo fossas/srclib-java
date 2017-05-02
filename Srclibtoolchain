@@ -9,8 +9,16 @@
       ]
     },
     {
-      "Subcmd": "depresolve",
+      "Subcmd": null,
       "Op": "depresolve",
+      "SourceUnitTypes": [
+        "JavaArtifact",
+        "Java"
+      ]
+    },
+    {
+      "Subcmd": null,
+      "Op": "graph",
       "SourceUnitTypes": [
         "JavaArtifact",
         "Java"

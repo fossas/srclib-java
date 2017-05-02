@@ -98,6 +98,9 @@ public class ScanCommand {
 
         for (SourceUnit unit : units) {
             unit.Dir = PathUtil.relativizeCwd(unit.Dir);
+            if (unit.Dir.equals("")) {
+                unit.Dir = ".";
+            }
             unit.Dependencies = unit.Dependencies.stream()
                     .map(dependency -> {
                         if (dependency.file != null) {
