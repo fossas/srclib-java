@@ -230,7 +230,7 @@ public class BuildAnalysis {
                 gradleArgs.add("--project-cache-dir");
                 gradleArgs.add(gradleCacheDir.toString());
                 if (!build.getFileName().toString().equals("build.gradle")
-                        && !build.getFileName().toString().equals("settingsl.gradle")) {
+                        && !build.getFileName().toString().equals("settings.gradle")) {
                     gradleArgs.add("-b");
                     gradleArgs.add(build.toAbsolutePath().toString());
                 }
@@ -313,7 +313,8 @@ public class BuildAnalysis {
                                         parts[2], // ArtifactID
                                         parts[3], // Version
                                         parts[0], // Scope
-                                        parts.length > 4 ? parts[4] : null // file
+                                        parts.length > 4 ? parts[4] : null, // file
+                                        info.buildFile != null ? info.buildFile : info.projectDir // path
                                 );
                                 if (!StringUtils.isEmpty(parts[5])) {
                                     dep.exclusions = Arrays.asList(parts[5].split(",")).stream().map(exclusion -> {

@@ -62,6 +62,7 @@ public class MavenCentralUtils {
                 (String) document.get("a"),
                 (String) document.get("v"),
                 null,
+                null,
                 null);
         LOGGER.info("Found {}/{}-{}", ret.groupID, ret.artifactID, ret.version);
         return ret;

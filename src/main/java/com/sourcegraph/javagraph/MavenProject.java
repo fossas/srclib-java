@@ -208,7 +208,8 @@ public class MavenProject implements Project {
                     d.getArtifactId(),
                     d.getVersion(),
                     d.getScope(),
-                    null);
+                    null,
+                    this.pomFile.toAbsolutePath().toString());
             rawDependency.classifier = d.getClassifier();
             rawDependency.type = d.getType();
             rawDependency.repoURI = null;

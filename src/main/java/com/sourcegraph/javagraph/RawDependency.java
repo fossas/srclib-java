@@ -49,13 +49,18 @@ public class RawDependency {
      * Exclusions
      */
     List<RawExclusion> exclusions;
+    /**
+     * Origin
+     */
+    String path;
 
-    public RawDependency(String groupID, String artifactID, String version, String scope, String file) {
+    public RawDependency(String groupID, String artifactID, String version, String scope, String file, String path) {
         this.groupID = groupID;
         this.artifactID = artifactID;
         this.version = version;
         this.scope = scope;
         this.file = file;
+        this.path = path;
     }
 
     @Override
@@ -83,6 +88,9 @@ public class RawDependency {
         if (!StringUtils.equals(classifier, that.classifier)) {
             return false;
         }
+        if (!StringUtils.equals(path, that.path)) {
+            return false;
+        }
         return true;
     }
 
@@ -95,6 +103,7 @@ public class RawDependency {
         result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (classifier != null ? classifier.hashCode() : 0);
         result = 31 * result + (exclusions != null ? exclusions.hashCode() : 0);
+        result = 31 * result + (path != null ? path.hashCode() : 0);
         return result;
     }
 
@@ -109,6 +118,7 @@ public class RawDependency {
                 ", classifier='" + classifier + '\'' +
                 ", optional='" + optional + '\'' +
                 ", exclusions='" + exclusions + '\'' +
+                ", path='" + path + '\'' +
                 '}';
     }
 }
