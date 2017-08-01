@@ -209,7 +209,7 @@ public class MavenProject implements Project {
                     d.getVersion(),
                     d.getScope(),
                     null,
-                    this.pomFile.toAbsolutePath().toString());
+                    PathUtil.relativizeCwd(this.pomFile.toAbsolutePath()).toString());
             rawDependency.classifier = d.getClassifier();
             rawDependency.type = d.getType();
             rawDependency.repoURI = null;
