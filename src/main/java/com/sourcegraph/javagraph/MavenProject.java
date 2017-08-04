@@ -396,44 +396,45 @@ public class MavenProject implements Project {
             } catch (Exception e) {
                 LOGGER.warn("Unable to embed POM object into the {} unit data", unit.Name, e);
             }
-            Collection<BuildAnalysis.BuildInfo> dependencies = collectDependencies(info.getName() + '/' + info.version,
-                    artifactsByUnitId,
-                    unitsByPomFile);
-            Set<String[]> sourcePath = new HashSet<>();
-            Collection<RawDependency> allDependencies = new ArrayList<>();
-            for (BuildAnalysis.BuildInfo dependency : dependencies) {
-                allDependencies.addAll(dependency.dependencies);
-                sourcePath.addAll(dependency.sourceDirs);
-            }
-            Collection<RawDependency> externalDeps = new ArrayList<>();
-            // if source unit depends on another source units, let's exclude them from the list before
-            // trying to resolve, otherwise request may fail
-            externalDeps.addAll(allDependencies.stream().filter(dep ->
-                    !artifactsByUnitId.containsKey(dep.groupID + '/' + dep.artifactID + '/' + dep.version)).
-                    collect(Collectors.toList()));
-            LOGGER.debug("Resolving artifacts for {} [{}]", unit.Name, info.buildFile);
-            Collection<Artifact> resolvedArtifacts = resolveDependencyArtifacts(unit.Name,
-                    externalDeps,
-                    repositories,
-                    "jar");
-            LOGGER.debug("Resolved artifacts for {} [{}]", unit.Name, info.buildFile);
-            List<String> classPath = new ArrayList<>();
-            for (Artifact artifact : resolvedArtifacts) {
-                File file = artifact.getFile();
-                if (file != null) {
-                    classPath.add(file.getAbsolutePath());
-                    // updating unit dependencies with files after resolution
-                    for (RawDependency rawDependency : unit.Dependencies) {
-                        if (rawDependency.artifactID.equals(artifact.getArtifactId()) &&
-                                rawDependency.groupID.equals(artifact.getGroupId()) &&
-                                rawDependency.version.equals(artifact.getVersion())) {
-                            rawDependency.file = file.toString();
-                            break;
-                        }
-                    }
-                }
-            }
-            unit.Data.put("ClassPath", classPath);
+             Collection<BuildAnalysis.BuildInfo> dependencies = collectDependencies(info.getName() + '/' + info.version,
+                     artifactsByUnitId,
+                     unitsByPomFile);
+             Set<String[]> sourcePath = new HashSet<>();
+             Collection<RawDependency> allDependencies = new ArrayList<>();
+             for (BuildAnalysis.BuildInfo dependency : dependencies) {
+                 allDependencies.addAll(dependency.dependencies);
+                 sourcePath.addAll(dependency.sourceDirs);
+             }
+             // Commented out so that nested dependencies aren't resolved.
+//             Collection<RawDependency> externalDeps = new ArrayList<>();
+//             // if source unit depends on another source units, let's exclude them from the list before
+//             // trying to resolve, otherwise request may fail
+//             externalDeps.addAll(allDependencies.stream().filter(dep ->
+//                     !artifactsByUnitId.containsKey(dep.groupID + '/' + dep.artifactID + '/' + dep.version)).
+//                     collect(Collectors.toList()));
+//             LOGGER.debug("Resolving artifacts for {} [{}]", unit.Name, info.buildFile);
+//             Collection<Artifact> resolvedArtifacts = resolveDependencyArtifacts(unit.Name,
+//                     externalDeps,
+//                     repositories,
+//                     "jar");
+//             LOGGER.debug("Resolved artifacts for {} [{}]", unit.Name, info.buildFile);
+//             List<String> classPath = new ArrayList<>();
+//             for (Artifact artifact : resolvedArtifacts) {
+//                 File file = artifact.getFile();
+//                 if (file != null) {
+//                     classPath.add(file.getAbsolutePath());
+//                     // updating unit dependencies with files after resolution
+//                     for (RawDependency rawDependency : unit.Dependencies) {
+//                         if (rawDependency.artifactID.equals(artifact.getArtifactId()) &&
+//                                 rawDependency.groupID.equals(artifact.getGroupId()) &&
+//                                 rawDependency.version.equals(artifact.getVersion())) {
+//                             rawDependency.file = file.toString();
+//                             break;
+//                         }
+//                     }
+//                 }
+//             }
+//             unit.Data.put("ClassPath", classPath);
             unit.Data.put("SourcePath", sourcePath);
             if (info.androidSdk != null) {
                 unit.Data.put("Android", true);
