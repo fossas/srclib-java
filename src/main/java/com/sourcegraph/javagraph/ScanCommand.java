@@ -61,6 +61,8 @@ public class ScanCommand {
             units.addAll(GradleProject.findAllSourceUnits(fossaConfig.getGradleBuildFile()));
             LOGGER.info("Collecting Ant source units");
             units.addAll(AntProject.findAllSourceUnits());
+            LOGGER.info("Collecting Sbt source units");
+            units.addAll(SbtProject.findAllSourceUnits());
             normalize(units);
             JSONUtil.writeJSON(units);
         } catch (Exception e) {
@@ -81,7 +83,7 @@ public class ScanCommand {
         dependencyComparator = dependencyComparator.
                 thenComparing(dependency -> dependency.groupID).
                 thenComparing(dependency -> dependency.version).
-                thenComparing(dependency -> dependency.scope).
+                thenComparing(dependency -> dependency.scope, Comparator.nullsFirst(Comparator.naturalOrder())).
                 thenComparing((o1, o2) -> {
                     if (o1.file == null) {
                         return o2.file == null ? 0 : -1;
