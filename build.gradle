@@ -35,7 +35,7 @@ dependencies {
 
 	compile 'com.google.guava:guava:18.0'
 
-	compile 'org.json:json:20160212'
+	compile 'org.json:json:20160810'
 
 	compile 'org.slf4j:slf4j-api:1.7.12'
 

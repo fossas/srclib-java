@@ -392,7 +392,7 @@ public class MavenProject implements Project {
             unit.Data.put("SourceVersion", info.sourceVersion);
             unit.Data.put("SourceEncoding", info.sourceEncoding);
             try {
-                unit.Data.put("POM", org.json.XML.toJSONObject(IOUtils.toString(new FileInputStream(info.buildFile))));
+                unit.Data.put("POM", org.json.XML.toJSONObject(IOUtils.toString(new FileInputStream(info.buildFile)), /*keepStrings=*/ true));
             } catch (Exception e) {
                 LOGGER.warn("Unable to embed POM object into the {} unit data", unit.Name, e);
             }
