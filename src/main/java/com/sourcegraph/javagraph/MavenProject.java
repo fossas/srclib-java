@@ -143,9 +143,9 @@ public class MavenProject implements Project {
             ModelBuildingResult result = factory.newInstance().build(request);
             mavenProject = new org.apache.maven.project.MavenProject(result.getEffectiveModel());
             for (String modelId : result.getModelIds()) {
-                mavenProject.getModel().getProfiles().stream()
+                mavenProject.getModel().setProfiles(mavenProject.getModel().getProfiles().stream()
                             .filter(profile -> profileIds.contains(profile.getId()))
-                            .collect(Collectors.toList());
+                            .collect(Collectors.toList()));
             }
             LOGGER.debug("Maven project structure is built {}", pomFile);
             // applying all registered plugins to adjust project data

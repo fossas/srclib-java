@@ -1,3 +1,7 @@
+plugins {
+    id "net.ltgt.errorprone" version "0.0.13"
+}
+
 apply plugin: 'eclipse'
 apply plugin: 'application'
 
@@ -65,4 +69,12 @@ jar {
 		exclude "META-INF/*.DSA"
 		exclude "META-INF/*.RSA"
 	}
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs += [
+        '-Xep:ClassNewInstance:OFF',
+        '-Xep:DefaultCharset:OFF',
+        '-Xep:JdkObsolete:OFF'
+    ]
 }

@@ -44,6 +44,7 @@ public abstract class AbstractMavenPlugin implements MavenPlugin {
      * @param project Maven project to check plugin against
      * @return true if Maven project contains plugin with specific group and artifact ID
      */
+    @Override
     public boolean isApplicable(MavenProject project) {
         return getPlugin(project) != null;
     }
