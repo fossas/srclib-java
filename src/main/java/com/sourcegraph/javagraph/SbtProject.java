@@ -23,10 +23,10 @@ public class SbtProject {
     public static Collection<SourceUnit> findAllSourceUnits() throws IOException {
         Collection<SourceUnit> units = new ArrayList<>();
         // TODO: parses all sorts of bogus test input in some projects -- hard code top-level build.sbt instead.
-        //Collection<Path> sbtFiles = ScanUtil.findMatchingFiles("build.sbt");
-        Collection<Path> sbtFiles = ImmutableList.of(PathUtil.CWD.resolve("build.sbt"));
-        for (Path sbtFile : sbtFiles) {
-            units.addAll(processSourceUnit(sbtFile));
+        Collection<Path> sbtFiles = ScanUtil.findMatchingFiles("build.sbt");
+        if (sbtFiles.size() > 0) { 
+            // hardcode first traversed build.sbt (top-level)
+            units.addAll(processSourceUnit(sbtFiles.iterator().next()));
         }
         return units;
     }
