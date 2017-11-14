@@ -2,10 +2,8 @@ package com.sourcegraph.javagraph;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -31,19 +29,10 @@ public class GradleProject implements Project {
      * Maps source unit name to build info
      */
     private static Map<String, BuildAnalysis.BuildInfo> unitCache = new HashMap<>();
+    
 
     public GradleProject(SourceUnit unit) {
         this.unit = unit;
-    }
-
-    /**
-     * Extracts all artifacts from a given Gradle build file
-     * @param build Gradle build file location
-     * @return map unit name -> build info
-     * @throws IOException
-     */
-    public static Map<String, BuildAnalysis.BuildInfo> getGradleAttrs(Path build) throws IOException {
-        return getBuildInfo(build);
     }
 
     /**
@@ -138,79 +127,6 @@ public class GradleProject implements Project {
     }
 
     /**
-     * Collects all source units in a given Gradle build file
-     * @param gradleFile Gradle build file to process
-     * @param visited holds all visited build files to avoid infinite loops when we scanning repository for build files
-     * because some build files may be already taken into account by including them in parent's build file
-     * @return list of source units collected
-     * @throws IOException
-     * @throws XmlPullParserException
-     */
-    private static Collection<SourceUnit> createSourceUnits(Path gradleFile,
-                                                            Set<Path> visited)
-            throws IOException, XmlPullParserException {
-        Map<String, BuildAnalysis.BuildInfo> infos = getGradleAttrs(gradleFile);
-
-        Collection<SourceUnit> ret = new ArrayList<>();
-
-        for (BuildAnalysis.BuildInfo info : infos.values()) {
-
-            for (BuildAnalysis.ProjectDependency projectDependency : info.projectDependencies) {
-                if (!StringUtils.isEmpty(projectDependency.buildFile)) {
-                    Path p = PathUtil.CWD.resolve(projectDependency.buildFile).toAbsolutePath().normalize();
-                    visited.add(p);
-                }
-            }
-
-            // if (info.sources.isEmpty()) {
-            //     LOGGER.debug("Removing build info because it lacks sources: {}", info.getName());
-            //     // excluding units without sources
-            //     continue;
-            // }
-            final SourceUnit unit = new SourceUnit();
-            unit.Type = SourceUnit.DEFAULT_TYPE;
-            unit.Name = info.getName();
-            Path projectRoot = PathUtil.CWD.resolve(info.projectDir);
-            unit.Dir = info.projectDir;
-            if (info.buildFile != null) {
-                unit.Data.put("GradleFile", PathUtil.normalize(
-                        projectRoot.relativize(PathUtil.CWD.resolve(info.buildFile)).normalize().toString()));
-            } else {
-                unit.Data.put("GradleFile", StringUtils.EMPTY);
-            }
-            unit.Data.put("Description", info.attrs.description);
-            if (!StringUtils.isEmpty(info.sourceVersion)) {
-                unit.Data.put("SourceVersion", info.sourceVersion);
-            }
-            if (!StringUtils.isEmpty(info.sourceEncoding)) {
-                unit.Data.put("SourceEncoding", info.sourceEncoding);
-            }
-
-            if (info.androidSdk != null) {
-                unit.Data.put("Android", info.androidSdk);
-            }
-
-            // leave only existing files
-            unit.Files = new LinkedList<>();
-            for (String sourceFile : info.sources) {
-                File f = PathUtil.CWD.resolve(sourceFile).toFile();
-                if (f.isFile()) {
-                    // including only existing files to make 'make' tool happy
-                    unit.Files.add(f.getAbsolutePath());
-                }
-            }
-            unit.Dependencies = new ArrayList<>(info.dependencies);
-            if (!info.bootClassPath.isEmpty()) {
-                unit.Data.put("BootClassPath", new ArrayList<>(info.bootClassPath));
-            }
-            ret.add(unit);
-        }
-        return ret;
-
-    }
-
-
-    /**
      * Collects all source units from all Gradle build files in current working directory
      * @param buildfile relative path to build file
      * @return collection of source units
@@ -242,7 +158,19 @@ public class GradleProject implements Project {
         if (buildfile == null) {
             gradleFiles.addAll(ScanUtil.findMatchingFiles("build.gradle"));
         }
-
+        
+        // Get all build.gradle files
+        // TODO(xizhao): get only gradle build files referenced, included or traversed by master build.gradle
+        
+        // set of unit -> task -> dependency
+        
+        /* 
+         * 1. Find master build.gradles
+			2. Find all sub-referenced build.gradles
+			3. Toggle resolve via plugin
+			4. Let resolver extract all dips
+         * */
+        
         Set<SourceUnit> units = new LinkedHashSet<>();
         Set<Path> visited = new HashSet<>();
         for (Path gradleFile : gradleFiles) {
@@ -252,11 +180,12 @@ public class GradleProject implements Project {
             if (visited.contains(gradleFile)) {
                 continue;
             }
-            LOGGER.debug("Processing Gradle file {}", gradleFile);
+            LOGGER.info("Processing Gradle file {}", gradleFile);
             visited.add(gradleFile);
 
             try {
-                units.addAll(createSourceUnits(gradleFile, visited));
+            		GradleParser parser = new GradleParser(gradleFile);
+                units.add(parser.getUnit());
             } catch (Exception e) {
                 LOGGER.warn("An error occurred while processing Gradle file {}",
                         gradleFile, e);
@@ -274,6 +203,7 @@ public class GradleProject implements Project {
         LOGGER.debug("Resolved source unit dependencies");
 
         LOGGER.debug("Retrieved source units");
+        
         return units;
     }
 

@@ -50,7 +50,7 @@ public class ScanCommand {
             }
             if (subdir == null) {
                 subdir = ".";
-            }
+            } 
 
             // Scan for source units.
             List<SourceUnit> units = new ArrayList<>();
