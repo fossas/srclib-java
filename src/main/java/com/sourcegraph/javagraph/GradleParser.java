@@ -115,8 +115,12 @@ public class GradleParser {
     
     private void addDependency(String dependencyId, String config) {
     		String[] dependencyParts = dependencyId.split(":");
-    		RawDependency newDependency = new RawDependency(dependencyParts[0], dependencyParts[1], dependencyParts[2], config, this.gradleFile, this.gradleFile);
-    		unit.Dependencies.add(newDependency);
+    		if (dependencyParts.length == 3) {
+	    		RawDependency newDependency = new RawDependency(dependencyParts[0], dependencyParts[1], dependencyParts[2], config, this.gradleFile, this.gradleFile);
+	    		unit.Dependencies.add(newDependency);
+    		} else {
+    			LOGGER.warn("Tried to parse invalid dependency {} from config {}", dependencyId, config);
+    		}
     }
     
     public GradleParser(Path build) throws IOException {
