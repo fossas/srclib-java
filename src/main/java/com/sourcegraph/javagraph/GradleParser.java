@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -116,7 +117,7 @@ public class GradleParser {
     private void addDependency(String dependencyId, String config) {
     		String[] dependencyParts = dependencyId.split(":");
     		if (dependencyParts.length == 3) {
-	    		RawDependency newDependency = new RawDependency(dependencyParts[0], dependencyParts[1], dependencyParts[2], config, this.gradleFile, this.gradleFile);
+	    		RawDependency newDependency = new RawDependency(dependencyParts[0], dependencyParts[1], dependencyParts[2], config, this.gradleFile, PathUtil.CWD.relativize(Paths.get(this.gradleFile)).toString());
 	    		unit.Dependencies.add(newDependency);
     		} else {
     			LOGGER.warn("Tried to parse invalid dependency {} from config {}", dependencyId, config);
