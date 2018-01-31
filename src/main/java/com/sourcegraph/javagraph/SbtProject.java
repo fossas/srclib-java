@@ -43,7 +43,7 @@ public class SbtProject {
 
 	private static Collection<SourceUnit> processSourceUnit(Path path) throws IOException {
 		// sbt startup is slow so we only invoke it once and parse output interactively.
-		Process process = new ProcessBuilder(ImmutableList.of("/usr/local/bin/sbt", "-no-colors"))
+		Process process = new ProcessBuilder(ImmutableList.of("/usr/bin/sbt", "-no-colors"))
 				.directory(path.getParent().toFile()).start();
 		try (BufferedReader reader = new BufferedReader(
 				new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
