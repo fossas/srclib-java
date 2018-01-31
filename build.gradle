@@ -21,6 +21,7 @@ dependencies {
 	compile 'com.beust:jcommander:1.30'
 	compile 'org.apache.maven:maven-core:3.2.3'
 	compile 'org.apache.maven:maven-model:3.2.3'
+	compile group: 'org.apache.ivy', name: 'ivy', version: '2.3.0'
 	compile 'commons-io:commons-io:2.4'
 
 	compile	'org.eclipse.aether:aether-api:0.9.0.M4'
