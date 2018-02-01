@@ -13,13 +13,14 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.report.XmlReportParser;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 
@@ -123,29 +124,36 @@ public class SbtProject {
 		// them.
 		unit.Type = "JavaArtifact";
 
-		// parse dependencies in ivy-report
+		/*
+		 *  NOTE (Alex Nuccio): we are using the "show ivyReport" command, which creates an XML file ivy-report that we can parse with the ivy lib. The issue is that sometimes the incorrect path of the report xml is 
+		 *  output: https://github.com/jrudolph/sbt-dependency-graph/issues/21. For reference, try "show ivyReport" on https://github.com/anuccio1/sbt-test, and the wrong path is output. 
+		 *  For this reason, if the file that is output doesn't exist, we will use the "dependencyList" command which outputs a flat dep list to stdout.
+		 *  
+		 *  We previously used "show libraryDependencies", however this wasn't outputting reliable deps
+		 */
 		Collection<String> ivyReportString = executeSbtCommand("show ivyReport", reader, writer);
 		Pattern ivyReportXMLPattern = Pattern.compile("/[\\S\\s]+/resolution-cache/reports/[\\S\\s]+\\.xml$"); // match absolute path of ivy-report xml file
 		for (String ivyStr: ivyReportString) {
 			Matcher m = ivyReportXMLPattern.matcher(ivyStr);
-			if (m.matches()) {
-				File currentIvyReportFile = new File(ivyStr);
-				if (!currentIvyReportFile.exists()) {
-					continue;
-				}
-				XmlReportParser ivyReport = new XmlReportParser();
-				try {
-					ivyReport.parse(currentIvyReportFile);
-				} catch (ParseException e) {
-					LOGGER.warn(String.format("Error parsing ivy report file for project <%s>: %s", project, e.toString()));
-					continue;
-				}
-				ModuleRevisionId[] revs = ivyReport.getDependencyRevisionIds();
-				for(ModuleRevisionId rev : revs) {
-					RawDependency raw = new RawDependency(rev.getOrganisation(), rev.getName(), rev.getRevision(), null, null, PathUtil.relativizeCwd(path.toAbsolutePath()).toString());
-					raw.type = "ivy";
-					unit.Dependencies.add(raw);	
-				}
+			if (!m.matches()) continue;
+			File currentIvyReportFile = new File(ivyStr);
+			// If file wasn't created/path output isn't right, fall back to dependencyList
+			if (!currentIvyReportFile.exists()) {
+				unit.Dependencies.addAll(getFlatDepList(path, reader, writer));
+				continue;
+			}
+			XmlReportParser ivyReport = new XmlReportParser();
+			try {
+				ivyReport.parse(currentIvyReportFile);
+			} catch (ParseException e) {
+				LOGGER.warn(String.format("Error parsing ivy report file for project <%s>: %s", project, e.toString()));
+				continue;
+			}
+			ModuleRevisionId[] revs = ivyReport.getDependencyRevisionIds();
+			for(ModuleRevisionId rev : revs) {
+				RawDependency raw = new RawDependency(rev.getOrganisation(), rev.getName(), rev.getRevision(), null, null, PathUtil.relativizeCwd(path.toAbsolutePath()).toString());
+				raw.type = "ivy";
+				unit.Dependencies.add(raw);	
 			}
 		}
 		// parse source files
@@ -230,5 +238,31 @@ public class SbtProject {
 		BufferedWriter bw = new BufferedWriter(fw);
 		bw.write(addPluginLine);
 		bw.close();
+	}
+	
+	/**
+	 * calls dependencyList, which outputs a flat dep list to stdout.
+	 * Splitting by ":" and checking size >=3 will skip any unnecessary log info output to stdout. 
+	 * 
+	 * From testing, it seems that the only non-dep info logged to console are "Updating <project name>..." and "Done updating." and "Updating ProjectRef(uri("file:/private/tmp/akka/"), "<project name>")...
+	 * 
+	 * @throws IOException
+	 */
+	private static List<RawDependency> getFlatDepList (Path path, BufferedReader reader, BufferedWriter writer) throws IOException {
+		Collection<String> flatDepList = executeSbtCommand("dependencyList", reader, writer);
+		List<RawDependency> allDeps = new LinkedList<>();
+		for (String depLine: flatDepList) {
+			// This is how we define a non dep output to stdout. letters followed by any space followed by more letters.
+			if (depLine.matches("[\\w]+\\s[\\w]")) continue;
+			String[] dep = depLine.split(":");
+			if (dep.length < 3) {
+				continue;
+			}
+			RawDependency raw = new RawDependency(dep[0], dep[1], dep[2], null, null, PathUtil.relativizeCwd(path.toAbsolutePath()).toString());
+			raw.type = "ivy";
+			allDeps.add(raw);	
+		}
+
+		return allDeps;
 	}
 }
