@@ -23,7 +23,6 @@ import org.apache.ivy.plugins.report.XmlReportParser;
 
 import com.google.common.collect.ImmutableList;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,14 +45,11 @@ public class SbtProject {
 		// sbt startup is slow so we only invoke it once and parse output interactively.
 		Process process = new ProcessBuilder(ImmutableList.of("/usr/bin/sbt", "-no-colors"))
 				.directory(path.getParent().toFile()).start();
-		try (BufferedReader reader = new BufferedReader(
-				new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
-				BufferedWriter writer = new BufferedWriter(
-						new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8))) {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
+				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream(), StandardCharsets.UTF_8))) {
 			String selectedProject = null;
 			Collection<String> projects = new ArrayList<>();
 
-			// TODO: "set asciiGraphWidth := 10000" when sbt >= 1.0.0
 			// consume garbage from beginning of run
 			executeSbtCommand("", reader, writer);
 			Iterator<String> lines = executeSbtCommand("projects", reader, writer).iterator();
@@ -151,7 +147,7 @@ public class SbtProject {
 			}
 			ModuleRevisionId[] revs = ivyReport.getDependencyRevisionIds();
 			for(ModuleRevisionId rev : revs) {
-				RawDependency raw = new RawDependency(rev.getOrganisation(), rev.getName(), rev.getRevision(), null, null, PathUtil.relativizeCwd(path.toAbsolutePath()).toString());
+				RawDependency raw = new RawDependency(rev.getOrganisation(), rev.getName(), rev.getRevision(), "compile", null, PathUtil.relativizeCwd(path.toAbsolutePath()).toString());
 				raw.type = "ivy";
 				unit.Dependencies.add(raw);	
 			}
@@ -258,7 +254,8 @@ public class SbtProject {
 			if (dep.length < 3) {
 				continue;
 			}
-			RawDependency raw = new RawDependency(dep[0], dep[1], dep[2], null, null, PathUtil.relativizeCwd(path.toAbsolutePath()).toString());
+			// setting this to compile scope
+			RawDependency raw = new RawDependency(dep[0], dep[1], dep[2], "compile", null, PathUtil.relativizeCwd(path.toAbsolutePath()).toString());
 			raw.type = "ivy";
 			allDeps.add(raw);	
 		}
