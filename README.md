@@ -1,4 +1,5 @@
 # srclib-java [![Build Status](https://travis-ci.org/sourcegraph/srclib-java.png?branch=master)](https://travis-ci.org/sourcegraph/srclib-java)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Ffossas%2Fsrclib-java.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Ffossas%2Fsrclib-java?ref=badge_shield)
 
 ## Requirements
 
@@ -253,3 +254,6 @@ One `build.xml` === one source unit.
 * there may be compilation issues when repository contains few sub-projects 
 that may depend on each other. We won't be able to resolve dependencies between
 sub-projects.
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Ffossas%2Fsrclib-java.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Ffossas%2Fsrclib-java?ref=badge_large)
