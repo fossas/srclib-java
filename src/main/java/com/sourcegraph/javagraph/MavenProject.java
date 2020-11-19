@@ -298,7 +298,9 @@ public class MavenProject implements Project {
 
         BuildAnalysis.BuildInfo info = new BuildAnalysis.BuildInfo();
 
-        info.attrs = proj.getPOMAttrs();
+        // FOSSA doesn't need this and it throws errors when we can't fetch parent pom files (which happens frequently)
+        //info.attrs = proj.getPOMAttrs();
+
         info.buildFile = proj.pomFile.toAbsolutePath().normalize().toString();
         info.dependencies = proj.listDeps();
         info.version = proj.getMavenProject().getVersion();
@@ -371,8 +373,10 @@ public class MavenProject implements Project {
             externalDeps.addAll(info.dependencies.stream().filter(dep ->
                     !artifactsByUnitId.containsKey(dep.groupID + '/' + dep.artifactID + '/' + dep.version)).
                     collect(Collectors.toList()));
+            
             // reading POM files to retrieve SCM repositories
-            retrieveRepoUri(info.attrs.groupID + '/' + info.attrs.artifactID, externalDeps, repositories);
+            // Commenting this out because we don't need the repoUri for anything (Alex Nuccio - 11/19/2020)
+            // retrieveRepoUri(info.attrs.groupID + '/' + info.attrs.artifactID, externalDeps, repositories);
 
         }
 
@@ -388,7 +392,8 @@ public class MavenProject implements Project {
             unit.Dependencies = new ArrayList<>(info.dependencies);
             unit.Type = SourceUnit.DEFAULT_TYPE;
             unit.Data.put("POMFile", info.buildFile);
-            unit.Data.put("Description", info.attrs.description);
+            // NOTE: FOSSA is abandoning getting attrs, so this will be hardcoded
+            unit.Data.put("Description", "FOSSA analyzed source unit"); // info.attrs.description);
             unit.Data.put("SourceVersion", info.sourceVersion);
             unit.Data.put("SourceEncoding", info.sourceEncoding);
             try {
@@ -671,6 +676,9 @@ public class MavenProject implements Project {
     /**
      * Fetches POM files for specified dependencies and extract SCM URI if there are any
      *
+     * NOTE (Alex Nuccio - 11/19/2020): All this does it set the repoURI on each of the dependencies.
+     * As of now, I don't even think we need that data.
+     * 
      * @param dependencies list of dependencies to collect URI for
      * @param repositories repositories to use when looking for external files
      */
