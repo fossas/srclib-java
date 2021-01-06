@@ -1,7 +1,6 @@
 package com.sourcegraph.javagraph;
 
 import com.google.common.collect.Iterators;
-import com.sourcegraph.javagraph.maven.vendored.*;
 import com.sourcegraph.javagraph.maven.vendored.DefaultModelBuilderFactory;
 import com.sourcegraph.javagraph.maven.plugins.MavenPlugins;
 import org.apache.commons.io.IOUtils;
