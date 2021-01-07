@@ -392,8 +392,7 @@ public class MavenProject implements Project {
             unit.Dependencies = new ArrayList<>(info.dependencies);
             unit.Type = SourceUnit.DEFAULT_TYPE;
             unit.Data.put("POMFile", info.buildFile);
-            // NOTE: FOSSA is abandoning getting attrs, so this will be hardcoded
-            unit.Data.put("Description", "FOSSA analyzed source unit"); // info.attrs.description);
+            unit.Data.put("Description", info.attrs.description);
             unit.Data.put("SourceVersion", info.sourceVersion);
             unit.Data.put("SourceEncoding", info.sourceEncoding);
             try {
