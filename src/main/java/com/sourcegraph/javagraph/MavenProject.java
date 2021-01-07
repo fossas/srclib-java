@@ -299,8 +299,7 @@ public class MavenProject implements Project {
 
         BuildAnalysis.BuildInfo info = new BuildAnalysis.BuildInfo();
 
-        // FOSSA doesn't need this and it throws errors when we can't fetch parent pom files (which happens frequently)
-        //info.attrs = proj.getPOMAttrs();
+        info.attrs = proj.getPOMAttrs();
 
         info.buildFile = proj.pomFile.toAbsolutePath().normalize().toString();
         info.dependencies = proj.listDeps();
