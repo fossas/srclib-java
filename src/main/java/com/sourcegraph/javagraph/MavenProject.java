@@ -1,6 +1,7 @@
 package com.sourcegraph.javagraph;
 
 import com.google.common.collect.Iterators;
+import com.sourcegraph.javagraph.maven.vendored.DefaultModelBuilderFactory;
 import com.sourcegraph.javagraph.maven.plugins.MavenPlugins;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -299,6 +300,7 @@ public class MavenProject implements Project {
         BuildAnalysis.BuildInfo info = new BuildAnalysis.BuildInfo();
 
         info.attrs = proj.getPOMAttrs();
+
         info.buildFile = proj.pomFile.toAbsolutePath().normalize().toString();
         info.dependencies = proj.listDeps();
         info.version = proj.getMavenProject().getVersion();
@@ -371,8 +373,10 @@ public class MavenProject implements Project {
             externalDeps.addAll(info.dependencies.stream().filter(dep ->
                     !artifactsByUnitId.containsKey(dep.groupID + '/' + dep.artifactID + '/' + dep.version)).
                     collect(Collectors.toList()));
+            
             // reading POM files to retrieve SCM repositories
-            retrieveRepoUri(info.attrs.groupID + '/' + info.attrs.artifactID, externalDeps, repositories);
+            // Commenting this out because we don't need the repoUri for anything (Alex Nuccio - 11/19/2020)
+            // retrieveRepoUri(info.attrs.groupID + '/' + info.attrs.artifactID, externalDeps, repositories);
 
         }
 
@@ -671,6 +675,9 @@ public class MavenProject implements Project {
     /**
      * Fetches POM files for specified dependencies and extract SCM URI if there are any
      *
+     * NOTE (Alex Nuccio - 11/19/2020): All this does it set the repoURI on each of the dependencies.
+     * As of now, I don't even think we need that data.
+     * 
      * @param dependencies list of dependencies to collect URI for
      * @param repositories repositories to use when looking for external files
      */
